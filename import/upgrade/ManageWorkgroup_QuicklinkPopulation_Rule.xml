@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE Rule PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<Rule created="1738581225940" id="a9fe143994ca113b8194cb8431d40212" language="beanshell" modified="1738587099322" name="workgroupOwerRule" type="IdentitySelector">
+  <Description>This rule is used to select an Identity that is related to the given Identity</Description>
+  <Signature returnType="boolean">
+    <Inputs>
+      <Argument name="log" type="org.apache.commons.logging.Log">
+        <Description>
+          The log object associated with the SailPointContext.
+        </Description>
+      </Argument>
+      <Argument name="context" type="sailpoint.api.SailPointContext">
+        <Description>
+          A sailpoint.api.SailPointContext object that can be used to query the database if necessary.
+        </Description>
+      </Argument>
+      <Argument name="identity" type="Identity">
+        <Description>
+          The identity.
+        </Description>
+      </Argument>
+      <Argument name="roleName" type="String">
+        <Description>
+          The name of the sailpoint.object.Bundle (role) that is being selected for the Identity. 
+          If roles are not applicable to this Identity selection, this value will be void.
+        </Description>
+      </Argument>
+    </Inputs>
+    <Returns>
+      <Argument name="success">
+        <Description>
+            True if the selection was successful; false otherwise.
+        </Description>
+      </Argument>
+    </Returns>
+  </Signature>
+  <Source>
+  import sailpoint.object.Filter;
+  import sailpoint.object.Identity;
+  import sailpoint.object.QueryOptions;
+
+  import java.util.ArrayList;
+  import java.util.Iterator;
+  import java.util.List;
+  
+  import sailpoint.api.ObjectUtil;
+  import sailpoint.api.SailPointContext;
+  import sailpoint.api.SailPointFactory;
+
+  String name=identity.getName();
+  boolean success= false;
+  QueryOptions queryOptions = new QueryOptions();
+  queryOptions.addFilter(Filter.eq("workgroup", Boolean.TRUE));
+  List workgroups = context.getObjects(Identity.class, queryOptions);
+  List workgroupNames = new ArrayList();
+
+  for(Identity workgroup :workgroups ){
+    Identity owner = workgroup.getOwner();
+    if(owner!=null){        
+        if (owner.isWorkgroup()) {
+            Iterator wrkGrpmembers = ObjectUtil.getWorkgroupMembers(context, owner, null);           
+            while (wrkGrpmembers.hasNext()) {
+                Map identityMap = new HashMap();
+                Object[] object = (Object[]) wrkGrpmembers.next();
+                Identity ids = (Identity) object[0];
+                workgroupNames.add(ids.getName());
+            }
+        } 
+        else {
+            workgroupNames.add(owner.getName());
+        }
+    }
+  }
+  if(workgroupNames.contains(name)){
+    success = true;
+  }
+  
+  return success;
+  </Source>
+</Rule>

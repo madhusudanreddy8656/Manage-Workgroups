@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE sailpoint PUBLIC "sailpoint.dtd" "sailpoint.dtd">
+<sailpoint>
+  <QuickLink action="external" category="workgroupMgmt" messageKey="Manage Workgroup" name="manageWorkgroup" ordering="1">
+    <Attributes>
+      <Map>
+        <entry key="displayText" value="Manage Workgroup" />
+        <entry key="url" value="./plugins/pluginPage.jsf?pn=ManageWorkgroupPlugin" />
+      </Map>
+    </Attributes>
+    <QuickLinkOptions allowSelf="true">
+      <DynamicScopeRef>
+        <Reference class="sailpoint.object.DynamicScope" name="ManagementWorkGroup" />
+      </DynamicScopeRef>
+    </QuickLinkOptions>
+  </QuickLink>
+
+  <DynamicScope name="ManagementWorkGroup">
+    <Inclusions>
+      <Reference class="sailpoint.object.Identity" name="Workgroup-Management" />
+    </Inclusions>
+	 <Selector>
+    <IdentitySelector>
+      <RuleRef>
+        <Reference class="sailpoint.object.Rule"  name="workgroupOwerRule"/>
+      </RuleRef>
+    </IdentitySelector>
+  </Selector>
+  </DynamicScope>
+  <ImportAction name="merge">
+		<Configuration name="SystemConfiguration">
+			<Attributes>
+				<Map>
+					<entry key="quickLinkCategories">
+						<value>
+							<List>
+								<QuickLinkCategory messageKey="WorkGroup Management" name="workgroupMgmt" />
+							</List>
+						</value>
+					</entry>
+				</Map>
+			</Attributes>
+		</Configuration>
+	</ImportAction>
+</sailpoint>

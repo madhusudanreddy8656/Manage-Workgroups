@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manage Workgroup</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="#{plugins.requestContextPath}/plugin/ManageWorkgroupPlugin/ui/css/manageWorkgroup_Styles.css"
+        type="text/css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="#{plugins.requestContextPath}/plugin/ManageWorkgroupPlugin/ui/js/manageWorkgroup_Script.js"></script>
+</head>
+<body ng-app="manageWorkgroup" ng-controller="workgroupController as vm">
+    <div class="container" id="myDiv" ng-show="!vm.showDetails">
+        <h2>Workgroups</h2>
+        <input type="text" ng-model="vm.searchText" ng-change="vm.onSearch('workgroup')" placeholder="Filter workgroups by name" class="form-control" />
+        <table class="table table-bordered table-wrapper">
+            <thead>
+                <tr>
+                    <th class="attribute_heading" ng-click="vm.sortBy('workgroup')" style="cursor: pointer; width: 40%;">
+                        Workgroup Name
+                    </th>
+					<th class="attribute_heading" style="cursor: pointer; width: 60%;">
+                        Description
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="workgroup in vm.workgroups | orderBy:vm.sortColumn:vm.reverse   | filter: vm.searchText | limitTo: vm.pageSize : vm.currentPage * vm.pageSize" ng-click="vm.selectWorkgroup(workgroup.workgroupNames)">
+                    <td class="table_data">{{ workgroup.workgroupNames }}</td>
+					<td class="table_data">{{  workgroup.workgroupDescriptions || ' '  }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="pagination">
+            <div class="pagination-controls">
+                <button ng-click="vm.goToFirstPage()" ng-disabled="vm.currentPage == 0">
+                    <i class="fas fa-angle-double-left"></i>
+                </button>
+                <button ng-click="vm.prevPage()" ng-disabled="vm.currentPage == 0">
+                    <i class="fas fa-angle-left"></i>
+                </button>
+                <span>Page {{ vm.currentPage + 1 }} of {{ vm.totalPages }}</span>
+                <button ng-click="vm.nextPage()" ng-disabled="vm.currentPage >= vm.totalPages - 1">
+                    <i class="fas fa-angle-right"></i>
+                </button>
+                <button ng-click="vm.goToLastPage()" ng-disabled="vm.currentPage >= vm.totalPages - 1">
+                    <i class="fas fa-angle-double-right"></i>
+                </button>
+                <button ng-click="vm.refreshData()">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+            </div>
+            <div class="pagination-info">
+                <span>Displaying {{ vm.startIndex + 1 }}-{{ vm.endIndex }} of {{ vm.totalItems }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="container" id="details" ng-show="vm.showDetails">
+        <h2 class="heading_element">Edit Workgroup</h2>
+        <div>
+            <table style="border-spacing: 0 10px; border-collapse: separate;">
+                <tr>
+                    <td class="nowrap vertical-align" style="text-align: right; padding-right: 15px;">
+                        <span class="titleColumn">Name</span>
+                    </td>
+                    <td>
+                        <input id="editForm:name" type="text" name="editForm:name" ng-model="vm.selectedWorkgroup"
+                            size="30" readonly="true" style="width: 250px; padding: 5px;" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <h3>Members</h3>
+        <input type="text" ng-model="vm.memberSearchText" placeholder="Search members..." class="form-control" ng-change="vm.onSearch('identity')"/>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th class="attribute_heading checkbox-column"><input type="checkbox" ng-model="vm.selectAllMembers"
+                            ng-change="vm.toggleAllMembers()" /></th>
+                    <th class="attribute_heading" ng-click="vm.sortBy('identity')">Name</th>
+                    <th class="attribute_heading">First Name</th>
+                    <th class="attribute_heading">Last Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr
+                    ng-repeat="member in vm.currentMembers | filter:vm.memberSearchText | limitTo: vm.pageSize : vm.identityCurrentPage * vm.pageSize">
+                    <td class="checkbox-column"><input type="checkbox" ng-model="member.selected" /></td>
+                    <td class="table_data">{{ member.name }}</td>
+                    <td class="table_data">{{ member.firstName }}</td>
+                    <td class="table_data">{{ member.lastName }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="pagination">
+            <button ng-disabled="vm.identityCurrentPage === 0" ng-click="vm.identityPreviousPage()"
+                class="btn btn-secondary"><i class="fas fa-angle-left"></i></button>
+            Page {{ vm.identityCurrentPage + 1 }} of {{ vm.identitytotalPages }}
+            <button ng-disabled="vm.identityCurrentPage >= vm.identitytotalPages - 1" ng-click="vm.identityNextPage()"
+                class="btn btn-secondary"><i class="fas fa-angle-right"></i></button>
+        </div>
+        <div class="button_container">
+            <button class="remove_button" ng-click="vm.removeSelectedMembers()">Remove Members</button>
+			
+			<!-- Custom Searchable Dropdown -->
+			<div class="searchDropdown">
+				<input type="text" ng-model="vm.searchIdentityText" placeholder="Select Identity" 
+					ng-click="vm.toggleDropdown($event)"
+					ng-dblclick="vm.clearSearch()" 	/>
+				<span class="dropdown-icon" ng-click="vm.toggleDropdown($event)" ></span>  
+				
+				<div class="searchDropdown-content" ng-show="vm.showDropdown">
+					<div ng-repeat="identity in vm.availableIdentities | filter: { name: vm.searchIdentityText }"
+						ng-click="vm.selectIdentity(identity)">
+						<strong>{{ identity.name }}</strong>
+					</div>
+				</div>
+			</div>
+
+            <!-- Add Member Button -->
+            <button class="add_button" ng-click="vm.addMember()">Add Member</button>
+        </div>
+        <div class="buttons">
+            <button class="add_button" ng-click="vm.saveChanges()">Save</button>
+            <button class="remove_button" ng-click="vm.goBack()">Cancel</button>
+        </div>
+    </div>    
+</body>
+
+</html>
